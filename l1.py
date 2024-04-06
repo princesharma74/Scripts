@@ -34,7 +34,8 @@ def get_rating(username):
     variables = {"username": username}
     data = make_graphql_request(query, variables)
     if data:
-        print(data)
+        # print(data)
+        return data.get('data', {}).get('userContestRanking', []).get('rating')
 
 
 def get_problems_solved(username, limit=20):
@@ -61,18 +62,22 @@ def get_problems_solved(username, limit=20):
         problems_leetcode = []
         for submission in ac_submissions:
             if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
-                problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
-                submission_link = f"https:/leetcode.com/{submission.get('url')}"
+                problem_link = f"https://leetcode.com/problems/{
+                    submission.get('titleSlug')}/"
+                submission_link = f"https:/leetcode.com/{
+                    submission.get('url')}"
                 problems_leetcode.append({
                     'problem_title': submission.get('title'),
                     'problem_link': problem_link,
                     'submission_link': submission_link,
                     'submission_id': submission.get('id')
                 })
-        print(problems_leetcode)
+        # print(problems_leetcode)
+        return problems_leetcode
 
 
 if __name__ == "__main__":
     username = "ShivamBedar"
-    get_rating(username)
-    get_problems_solved(username)
+    # rating = get_rating(username)
+    # print(rating)
+    # get_problems_solved(username)

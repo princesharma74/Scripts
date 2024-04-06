@@ -9,16 +9,18 @@ def get_rating(username):
         response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
         data = response.json()
 
-        # Extract and print new ratings
-        for item in data["result"]:
-            print(item["newRating"])
+        last_item = data["result"][-1]
+        # print(last_item["newRating"])
+        return last_item["newRating"]
     except requests.exceptions.RequestException as e:
         print("Error fetching data:", e)
         # Get the rating of a user on CodeForces
 
 
 def get_problems_solved(handle, count=20):
-    url = f"https://codeforces.com/api/user.status?handle={handle}&from=1&count={count}"
+    print("codeforces running")
+    url = f"https://codeforces.com/api/user.status?handle={
+        handle}&from=1&count={count}"
     problem_codeforces = []
     response = requests.get(url)
     if response.status_code == 200:
@@ -30,15 +32,17 @@ def get_problems_solved(handle, count=20):
                 submission['creationTimeSeconds'])
             if creation_time > recent_time and submission['verdict'] == 'OK':
                 problem_name = submission['problem']['name']
-                problem_url = f"https://codeforces.com/problemset/problem/{submission['problem']['contestId']}/{submission['problem']['index']}"
-                submission_url = f"https://codeforces.com/contest/{submission['contestId']}/submission/{submission['id']}"
+                problem_url = f"https://codeforces.com/problemset/problem/{
+                    submission['problem']['contestId']}/{submission['problem']['index']}"
+                submission_url = f"https://codeforces.com/contest/{
+                    submission['contestId']}/submission/{submission['id']}"
 
                 problem_codeforces.append(
                     {'problem_code': submission['problem']['contestId'],
                      'problem_link': problem_url,
                      'submission_link': submission_url,
                      'submission_id': submission['id']})
-
+        print("codeforces ended")
         return problem_codeforces
     else:
         print("Error fetching data from Codeforces API.")
@@ -47,15 +51,15 @@ def get_problems_solved(handle, count=20):
 
 # Example usage:
 handle = 'guptajirock176'
-recent_correct_submissions = get_problems_solved(handle)
-get_rating(handle)
-if recent_correct_submissions:
-    print("Recent Correct Submissions:")
-    for submission in recent_correct_submissions:
-        print(f"Problem Code: {submission['problem_code']}")
-        print(f"Problem URL: {submission['problem_link']}")
-        print(f"Submission URL: {submission['submission_link']}")
-        print(f"submission id: {submission['submission_id']}")
-        print()
-else:
-    print("Failed to retrieve recent correct submissions.")
+# recent_correct_submissions = get_problems_solved(handle)
+print(get_rating(handle))
+# if recent_correct_submissions:
+#     print("Recent Correct Submissions:")
+#     for submission in recent_correct_submissions:
+#         print(f"Problem Code: {submission['problem_code']}")
+#         print(f"Problem URL: {submission['problem_link']}")
+#         print(f"Submission URL: {submission['submission_link']}")
+#         print(f"submission id: {submission['submission_id']}")
+#         print()
+# else:
+#     print("Failed to retrieve recent correct submissions.")
