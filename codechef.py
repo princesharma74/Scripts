@@ -13,14 +13,17 @@ from bs4 import BeautifulSoup
 
 def get_rating(driver, username):
     url = f"https://www.codechef.com/users/{username}"
-    rating = None
+    rating = 0
     try:
         driver.get(url)
         time.sleep(3)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         rating_element = soup.find('div', class_='rating-number')
         if rating_element:
-            rating = rating_element.text.strip()
+            cf_rating = rating_element.text.strip()
+            match = re.search(r'\d+', cf_rating)
+            if match:
+                rating = int(match.group())
     except Exception as e:
         print("An error occurred:", str(e))
     return rating
