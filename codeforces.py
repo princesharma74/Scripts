@@ -19,8 +19,9 @@ def get_rating(username):
 
 def get_problems_solved(handle, count=20):
     # print("Codeforces running")
-    url = f"https://codeforces.com/api/user.status?handle={
-        handle}&from=1&count={count}"
+    url = "https://codeforces.com/api/user.status?handle=" + \
+        handle + "&from=1&count=" + str(count)
+
     problem_codeforces = []
     response = requests.get(url)
 
@@ -30,13 +31,12 @@ def get_problems_solved(handle, count=20):
 
         for submission in submissions:
             if 'creationTimeSeconds' in submission and 'verdict' in submission:
-                creation_time = datetime.fromtimestamp(submission['creationTimeSeconds'])
+                creation_time = datetime.fromtimestamp(
+                    submission['creationTimeSeconds'])
                 if creation_time > recent_time and submission['verdict'] == 'OK':
                     problem_name = submission['problem']['name']
-                    problem_url = f"https://codeforces.com/problemset/problem/{
-                    submission['problem']['contestId']}/{submission['problem']['index']}"
-                    submission_url = f"https://codeforces.com/contest/{
-                    submission['contestId']}/submission/{submission['id']}"
+                    problem_url = f"https://codeforces.com/problemset/problem/{submission['problem']['contestId']}/{submission['problem']['index']}"
+                    submission_url = f"https://codeforces.com/contest/{submission['contestId']}/submission/{submission['id']}"
                     problem_codeforces.append({
                         'platform': 'Codeforces',
                         'problem_title': problem_name,

@@ -62,10 +62,8 @@ def get_problems_solved(username, limit=20):
         problems_leetcode = []
         for submission in ac_submissions:
             if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
-                problem_link = f"https://leetcode.com/problems/{
-                    submission.get('titleSlug')}/"
-                submission_link = f"https:/leetcode.com/{
-                    submission.get('url')}"
+                problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
+                submission_link = f"https://leetcode.com/{submission.get('url')}"
                 problems_leetcode.append({
                     'platform': 'LeetCode',
                     'problem_title': submission.get('title'),

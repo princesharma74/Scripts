@@ -16,7 +16,6 @@ def get_user():
             #     print(user)
             return data
         else:
-            print(f"Failed to fetch user data. Status code: {
-                  response.status_code}, Error: {response.text}")
+            print(f"Failed to fetch user data. Status code: {response.status_code}, Error: {response.text}")
     except Exception as e:
         print("An error occurred:", e)

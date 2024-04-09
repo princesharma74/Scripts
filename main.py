@@ -29,8 +29,8 @@ def get_rating(username, platform):
 
 
 def push_to_api(endpoint, data, method='POST'):
-    api_url = f'http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/{
-        endpoint}'
+    api_endpoint = "http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/"
+    api_url = api_endpoint + endpoint
     headers = {
         'Authorization': 'Bearer C6efvByQWTLM8DTlyImyv_tL7aPVAVLvISzI_1ssvJo',
         'Content-Type': 'application/json'
