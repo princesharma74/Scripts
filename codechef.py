@@ -8,8 +8,6 @@ from selenium_driver import driversetup
 import random
 from bs4 import BeautifulSoup
 
-# driver = driversetup()
-
 
 def get_rating(driver, username):
     url = f"https://www.codechef.com/users/{username}"
