@@ -1,116 +1,80 @@
+import requests
+from selenium_driver import driversetup
 import codeforces
 import codechef
 import leetcode
-from selenium_driver import driversetup
+import getUser
 
-
-'''
-codeforces_username = 'guptajirock176'
-# create a selenium driver
 driver = driversetup()
-
-problems = codeforces.get_problems_solved(driver, codeforces_username)
-print(problems)'''
-
-'''
-leetcode_username = 'aar9av'
-# create a selenium driver
-driver = driversetup()
-problems = leetcode.get_problems_solved(driver, leetcode_username)
-print(problems)
-'''
-
-# codechef_username = 'coder_s_176'
-# # create a selenium driver
-# driver = driversetup()
-# problems = codechef.get_problems_solved(driver, codechef_username)
-# print(problems)
-
-
-# for user in users:
-#     dummy = {
-#         'username': '',
-#         'rating': '',
-#         'submissions':
-#     }
-#     user['platform']['codeforces']
-driver = driversetup()
-
-users = [
-    {
-        'username': 'princesharma74',
-        'platform': {
-            'codeforces': 'princesharma74',
-            'codechef': 'princesharma74',
-            'leetcode': 'princesharma74',
-        }
-    },
-    {
-        'username': 'ShivamBedar23',
-        'platform': {
-            'codeforces': 'guptajirock176',
-            'codechef': 'coder_s_176',
-            'leetcode': 'ShivamBedar',
-        }
-    },
-    {
-        'username': 'aar9av',
-        'platform': {
-            'codeforces': 'aar9av',
-            'codechef': 'aar9av',
-            'leetcode': 'aar9av',
-        }
-    },
-]
-
-# Initialize an empty dictionary to store the final result
-final_result = []
-
-# Define a function to get submissions for a user on a specific platform
 
 
 def get_submissions(username, platform):
-    # Initialize an empty list to store submissions
-    submissions = []
-    # Call the respective function based on the platform
+    print(f"Getting submissions for {platform}...")
     if platform == 'codeforces':
-        submissions = codeforces.get_problems_solved(driver, username)
+        return codeforces.get_problems_solved(username)
     elif platform == 'codechef':
-        submissions = codechef.get_problems_solved(driver, username)
-    # elif platform == 'leetcode':
-    #     submissions = leetcode.get_problems_solved(driver, username)
-    return submissions
-
-# defining a function to get rating for a user on a specific platform
+        return codechef.get_problems_solved(driver, username)
+    elif platform == 'leetcode':
+        return leetcode.get_problems_solved(username)
 
 
 def get_rating(username, platform):
+    print(f"Getting rating for {platform}...")
     if platform == 'codeforces':
-        # rating = codeforces.get_rating(driver, username)
-        rating = 1600
-    if platform == 'codechef':
-        rating = codechef.get_rating(driver, username)
-    if platform == 'leetcode':
-        rating = 1600
-    return rating
+        return codeforces.get_rating(username)
+    elif platform == 'codechef':
+        return codechef.get_rating(driver, username)
+    elif platform == 'leetcode':
+        return leetcode.get_rating(username)
 
 
-# Iterate over the users list
-for user in users:
-    username = user['username']
-    platform_data = user['platform']
-    # Initialize a dictionary for the current user
-    user_dict = {"username": username, "platform": {}}
-    # Iterate over the platforms for the current user
-    for platform, handle in platform_data.items():
-        # Call the function to get submissions for the current platform and user
-        submissions = get_submissions(handle, platform)
-        rating = get_rating(handle, platform)
-        # Append submissions to the user_dict under the respective platform
-        user_dict["platform"][platform] = {
-            "handle": handle, "submissions": submissions, "rating": rating}
-    # Append the user_dict to the final_result
-    final_result.append(user_dict)
+def push_to_api(endpoint, data, method='POST'):
+    api_url = f'http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/{
+        endpoint}'
+    headers = {
+        'Authorization': 'Bearer C6efvByQWTLM8DTlyImyv_tL7aPVAVLvISzI_1ssvJo',
+        'Content-Type': 'application/json'
+    }
+    try:
+        if method.upper() == 'POST':
+            response = requests.post(api_url, json=data, headers=headers)
+        elif method.upper() == 'PATCH':
+            response = requests.patch(api_url, json=data, headers=headers)
+        response.raise_for_status()
+        print("Data pushed successfully.")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to push data. Error: {e}")
 
-# Print the final_result
-print(final_result)
+
+def run_tasks(users):
+    print("Running tasks...")
+    for user in users:
+        username = user['username']
+        codechef_id = user['codechef_id']
+        codeforces_id = user['codeforces_id']
+        leetcode_id = user['leetcode_id']
+
+        rating_data = {
+            'email': user['email'],
+            'first_name': user['first_name'],
+            'last_name': user['last_name'],
+            'codeforces_rating': int(get_rating(codeforces_id, 'codeforces')),
+            'codechef_rating': int(get_rating(codechef_id, 'codechef')),
+            'leetcode_rating': int(get_rating(leetcode_id, 'leetcode'))
+        }
+        push_to_api(f'user/{username}/update', rating_data, method='PATCH')
+
+        submissions = []
+        for platform in ['leetcode', 'codeforces', 'codechef']:
+            submissions.extend(get_submissions(user[platform+'_id'], platform))
+
+        push_to_api(f'user/{username}/updatesubmissions', submissions)
+
+
+def main():
+    users = getUser.get_user()
+    run_tasks(users)
+
+
+if __name__ == "__main__":
+    main()

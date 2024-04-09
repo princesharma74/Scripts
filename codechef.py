@@ -4,9 +4,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
 from selenium.webdriver.support import expected_conditions as EC
 import re
-
-
+from selenium_driver import driversetup
+import random
 from bs4 import BeautifulSoup
+
+# driver = driversetup()
 
 
 def get_rating(driver, username):
@@ -45,12 +47,25 @@ def get_problems_solved(driver, username):
                 title = row.find_elements(By.XPATH, ".//td")[1].text
                 submission_link = row.find_elements(
                     By.XPATH, ".//td")[4].find_element(By.XPATH, ".//a").get_attribute("href")
-                submission_id = submission_link.split('/')[-1]
+                # submission_id = submission_link.split('/')[-1]
+                # print("Submission Link:", submission_link)
+
                 if re.match(pattern, tim) and status == "accepted":
                     problem_link = f"https://www.codechef.com/problems/{title}"
+                    # print(submission_link)
+                    if (submission_link != None):
+                        submission_id = submission_link.split('/')[-1]
+                    else:
+                        submission_id = str(random.randint(10**9, 10**10 - 1))
+                        submission_link = "No Submission Link Available"
                     # append dictionary with following items title, problem_link, submission_link, submission_id, 'Codechef', username
-                    solved_questions.append({'problem_code': title, 'problem_link': problem_link,
-                                            'submission_link': submission_link, 'submission_id': submission_id})
+                    solved_questions.append({
+                        'platform': 'Codechef',
+                        'problem_title': title,
+                        'problem_link': problem_link,
+                        'submission_url': submission_link,
+                        'submission_id': submission_id
+                    })
             try:
                 next_button = driver.find_element(
                     By.XPATH, './/a[@onclick="onload_getpage_recent_activity_user(\'next\');"]')
@@ -68,3 +83,5 @@ def get_problems_solved(driver, username):
         print("An error occurred:", str(e))
 
     return solved_questions
+
+# print(get_problems_solved(driver, 'coder_s_176'))

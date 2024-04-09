@@ -6,7 +6,7 @@ def driversetup():
     logging.basicConfig(level=logging.ERROR)
     options = webdriver.ChromeOptions()
     #run Selenium in headless mode
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     #overcome limited resource problems
     options.add_argument('--disable-dev-shm-usage')

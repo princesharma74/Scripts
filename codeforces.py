@@ -1,56 +1,54 @@
-import time
-from bs4 import BeautifulSoup
-from datetime import timedelta
-import datetime
-import re
-import pytz
+import requests
+from datetime import datetime, timedelta
 
 
-def get_problems_solved(driver, username):
-    url = f"https://codeforces.com/submissions/{username}"
-    driver.get(url)
-    # Wait for the page to load
-    time.sleep(5)
+def get_rating(username):
+    try:
+        response = requests.post(
+            'https://codeforces.com/api/user.rating?handle=' + username)
+        response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+        data = response.json()
 
-    # Get the HTML content of the page
-    html = driver.page_source
+        last_item = data["result"][-1]
+        # print(last_item["newRating"])
+        return last_item["newRating"]
+    except requests.exceptions.RequestException as e:
+        print("Error fetching data:", e)
+        # Get the rating of a user on CodeForces
 
-    # Parse HTML content using Beautiful Soup
-    soup = BeautifulSoup(html, 'html.parser')
 
-    # Find all the rows in the submissions table
-    rows = soup.find_all('tr')
+def get_problems_solved(handle, count=20):
+    # print("Codeforces running")
+    url = f"https://codeforces.com/api/user.status?handle={
+        handle}&from=1&count={count}"
+    problem_codeforces = []
+    response = requests.get(url)
 
-    # Extract the problem codes of all the accepted submissions
-    solved_problems = []
-    for row in rows[1:]:  # Ignore the first row (table header)
-        cols = row.find_all('td')
-        if (len(cols) != 0):
-            # take only first 11 characters of the cols[1].text.strip()
-            # because it contains the date and time in the format
-            # write today in the format May/04/2023 from asia/kolkata timezone
-            tz = pytz.timezone('Asia/Kolkata')
-            today = datetime.datetime.now(tz).strftime(
-                "%b/%d/%Y")  # Fixed this line
-            yesterday = (datetime.datetime.now(tz) -
-                         timedelta(1)).strftime("%b/%d/%Y")
+    if response.status_code == 200:
+        submissions = response.json()['result']
+        recent_time = datetime.now() - timedelta(hours=24)
 
-            if len(cols) > 1 and (cols[1].text.strip()[0:11] == today or cols[1].text.strip()[0:11] == yesterday):
-                # if cols[1].text.strip()[0:11] == today:
-                verdict = cols[5].span.get('submissionverdict')
-                if verdict == "OK":
-                    problem_code = cols[3].a.text
-                    # get the problem link
-                    problem_link = f"https://codeforces.com/{cols[3].a.get('href')}"
-                    # get the submission id
-                    submission_id = cols[0].a.text
-                    # get the submission link by removing problem/B from the problem link and adding submission/submission_id
-                    pattern = r"/problem/[a-zA-Z0-9]+"  # pattern to match
-                    # replace the pattern with submission/submission_id
-                    submission_link = re.sub(
-                        pattern, f"/submission/{submission_id}", problem_link)
-                    # store the following items in dictionary problem_code.strip(), problem_link, submission_link, submission_id, 'Codeforces', username
-                    solved_problems.append({'problem_code': problem_code.strip(
-                    ), 'problem_link': problem_link, 'submission_link': submission_link, 'submission_id': submission_id})
+        for submission in submissions:
+            if 'creationTimeSeconds' in submission and 'verdict' in submission:
+                creation_time = datetime.fromtimestamp(submission['creationTimeSeconds'])
+                if creation_time > recent_time and submission['verdict'] == 'OK':
+                    problem_name = submission['problem']['name']
+                    problem_url = f"https://codeforces.com/problemset/problem/{
+                    submission['problem']['contestId']}/{submission['problem']['index']}"
+                    submission_url = f"https://codeforces.com/contest/{
+                    submission['contestId']}/submission/{submission['id']}"
+                    problem_codeforces.append({
+                        'platform': 'Codeforces',
+                        'problem_title': problem_name,
+                        'problem_link': problem_url,
+                        'submission_id': submission['id'],
+                        'submission_url': submission_url
+                    })
+        # print("Codeforces ended")
+        return problem_codeforces
+    else:
+        print("Error fetching data from Codeforces API.")
+        return None
 
-    return solved_problems
+
+# print(get_problems_solved("princesharma74"))
