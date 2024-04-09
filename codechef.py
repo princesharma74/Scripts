@@ -84,3 +84,5 @@ def get_problems_solved(driver, username):
         print("An error occurred:", str(e))
 
     return solved_questions
+
+# print()
