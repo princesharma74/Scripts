@@ -34,8 +34,13 @@ def get_rating(username):
     variables = {"username": username}
     data = make_graphql_request(query, variables)
     if data:
-        # print(data)
-        return data.get('data', {}).get('userContestRanking', []).get('rating')
+        user_contest_ranking = data.get('data', {}).get('userContestRanking')
+        if user_contest_ranking:
+            rating = user_contest_ranking.get('rating')
+            if rating is not None:
+                return rating
+    else:
+        return -1
 
 
 def get_problems_solved(username, limit=20):
@@ -72,3 +77,7 @@ def get_problems_solved(username, limit=20):
                     'submission_url': submission_link
                 })
         return problems_leetcode
+    else:
+        return []
+
+

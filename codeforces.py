@@ -6,7 +6,7 @@ def get_rating(username):
     try:
         response = requests.post(
             'https://codeforces.com/api/user.rating?handle=' + username)
-        response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+        response.raise_for_status()
         data = response.json()
 
         last_item = data["result"][-1]
@@ -15,7 +15,7 @@ def get_rating(username):
     except requests.exceptions.RequestException as e:
         print("Error fetching data:", e)
         # Get the rating of a user on CodeForces
-
+        return -1
 
 def get_problems_solved(handle, count=20):
     # print("Codeforces running")
@@ -51,7 +51,8 @@ def get_problems_solved(handle, count=20):
         return problem_codeforces
     else:
         print("Error fetching data from Codeforces API.")
-        return None
+        return ''
 
 
+print(get_rating("guptajirock176"))
 print(get_problems_solved("guptajirock176"))

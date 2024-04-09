@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 def get_rating(driver, username):
     url = f"https://www.codechef.com/users/{username}"
-    rating = 0
+    rating = -1
     try:
         driver.get(url)
         time.sleep(3)
@@ -87,4 +87,3 @@ def get_problems_solved(driver, username):
 
     return solved_questions
 
-# print(get_problems_solved(driver, 'coder_s_176'))

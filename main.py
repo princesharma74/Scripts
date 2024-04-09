@@ -47,21 +47,26 @@ def push_to_api(endpoint, data, method='POST'):
 
 
 def run_tasks(users):
-    print("Running tasks...")
     for user in users:
+        print(f"Running tasks for {user['username']}...")
         username = user['username']
         codechef_id = user['codechef_id']
         codeforces_id = user['codeforces_id']
         leetcode_id = user['leetcode_id']
-
         rating_data = {
             'email': user['email'],
             'first_name': user['first_name'],
             'last_name': user['last_name'],
-            'codeforces_rating': int(get_rating(codeforces_id, 'codeforces')),
-            'codechef_rating': int(get_rating(codechef_id, 'codechef')),
-            'leetcode_rating': int(get_rating(leetcode_id, 'leetcode'))
         }
+        cfrating = int(get_rating(codeforces_id, 'codeforces'))
+        ccrating = int(get_rating(codechef_id, 'codechef'))
+        lcrating = int(get_rating(leetcode_id, 'leetcode'))
+        if (cfrating != -1):
+            rating_data['codeforces_rating'] = cfrating
+        if (ccrating != -1):
+            rating_data['codechef_rating'] = ccrating
+        if (lcrating != -1):
+            rating_data['leetcode_rating'] = lcrating
         push_to_api(f'user/{username}/update', rating_data, method='PATCH')
 
         submissions = []
