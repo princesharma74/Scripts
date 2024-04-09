@@ -26,7 +26,10 @@ def get_problems_solved(handle, count=20):
     response = requests.get(url)
 
     if response.status_code == 200:
-        submissions = response.json()['result']
+        if 'result' in response.json():
+            submissions = response.json()['result']
+        else:
+            submissions = []
         recent_time = datetime.now() - timedelta(hours=24)
 
         for submission in submissions:
@@ -51,4 +54,4 @@ def get_problems_solved(handle, count=20):
         return None
 
 
-# print(get_problems_solved("princesharma74"))
+print(get_problems_solved("guptajirock176"))
