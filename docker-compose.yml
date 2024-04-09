@@ -1,8 +1,17 @@
 version: '3.8'
 
 services:
-  web:
+  selenium:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+
+  my_app:
     build: .
-    command: python main.py
+    depends_on:
+      - selenium
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
-      - .:/code
+      - .:/app
+    command: python3 -u main.py
