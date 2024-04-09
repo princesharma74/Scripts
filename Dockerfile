@@ -1,18 +1,7 @@
-# Pull the official base image
 FROM selenium/standalone-chrome:latest
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Set work directory
-WORKDIR /code
-
-# Install dependencies
-COPY requirements.txt /code/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-RUN apt-get update
-
-# Copy project
-COPY . /code/
+WORKDIR /app
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip
+COPY . /app
+RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONUNBUFFERED=1
