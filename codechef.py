@@ -59,7 +59,7 @@ def get_problems_solved(driver, username):
                     if (submission_link != None):
                         submission_id = submission_link.split('/')[-1]
                     else:
-                        submission_id = str(random.randint(10**9, 10**10 - 1))
+                        submission_id = 11111111
                         submission_link = "No Submission Link Available"
                     # append dictionary with following items title, problem_link, submission_link, submission_id, 'Codechef', username
                     solved_questions.append({
@@ -86,4 +86,3 @@ def get_problems_solved(driver, username):
         print("An error occurred:", str(e))
 
     return solved_questions
-
