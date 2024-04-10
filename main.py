@@ -4,35 +4,39 @@ import codeforces
 import codechef
 import leetcode
 import getUser
+import os
+from dotenv import load_dotenv
 
 driver = driversetup()
+load_dotenv()
 
 
-def get_submissions(username, platform):
+def user_submissions(username, platform):
     print(f"Getting submissions for {platform}...")
     if platform == 'codeforces':
-        return codeforces.get_problems_solved(username)
+        return codeforces.get_user_submissions(username)
     elif platform == 'codechef':
-        return codechef.get_problems_solved(driver, username)
+        return codechef.get_user_submissions(driver, username)
     elif platform == 'leetcode':
-        return leetcode.get_problems_solved(username)
+        return leetcode.get_user_submissions(username)
 
 
-def get_rating(username, platform):
+def get_user_data(username, platform):
     print(f"Getting rating for {platform}...")
     if platform == 'codeforces':
-        return codeforces.get_rating(username)
+        return codeforces.get_user_data(username)
     elif platform == 'codechef':
-        return codechef.get_rating(driver, username)
+        return codechef.get_user_data(driver, username)
     elif platform == 'leetcode':
-        return leetcode.get_rating(username)
+        return leetcode.get_user_data(username)
 
 
 def push_to_api(endpoint, data, method='POST'):
+    bearer_token = os.getenv('BEARER_TOKEN')
     api_endpoint = "http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/"
     api_url = api_endpoint + endpoint
     headers = {
-        'Authorization': 'Bearer C6efvByQWTLM8DTlyImyv_tL7aPVAVLvISzI_1ssvJo',
+        'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
     }
     try:
@@ -53,25 +57,35 @@ def run_tasks(users):
         codechef_id = user['codechef_id']
         codeforces_id = user['codeforces_id']
         leetcode_id = user['leetcode_id']
-        rating_data = {
+        user_data = {
             'email': user['email'],
             'first_name': user['first_name'],
             'last_name': user['last_name'],
         }
-        cfrating = int(get_rating(codeforces_id, 'codeforces'))
-        ccrating = int(get_rating(codechef_id, 'codechef'))
-        lcrating = int(get_rating(leetcode_id, 'leetcode'))
+        cfrating = get_user_data(codeforces_id, 'codeforces')
+        ccrating = get_user_data(codechef_id, 'codechef')
+        lcrating = get_user_data(leetcode_id, 'leetcode')
+
         if (cfrating != -1):
-            rating_data['codeforces_rating'] = cfrating
+            user_data['codeforces_rating'] = cfrating['rating']
+            user_data['number_of_codeforces_contests'] = cfrating['contests_participated']
+            user_data['number_of_codeforces_questions'] = cfrating['total_problems_solved']
+            user_data['global_rank_codeforces'] = cfrating['global_rank']
         if (ccrating != -1):
-            rating_data['codechef_rating'] = ccrating
+            user_data['codechef_rating'] = ccrating['rating']
+            user_data['number_of_codechef_contests'] = ccrating['contests_participated']
+            user_data['number_of_codechef_questions'] = ccrating['total_problems_solved']
+            user_data['global_rank_codechef'] = ccrating['global_rank']
         if (lcrating != -1):
-            rating_data['leetcode_rating'] = lcrating
-        push_to_api(f'user/{username}/update', rating_data, method='PATCH')
+            user_data['leetcode_rating'] = lcrating['rating']
+            user_data['number_of_leetcode_contests'] = lcrating['contests_participated']
+            user_data['number_of_leetcode_questions'] = lcrating['total_problems_solved']
+            user_data['global_rank_leetcode'] = lcrating['global_rank']
+        push_to_api(f'user/{username}/update', user_data, method='PATCH')
 
         submissions = []
         for platform in ['leetcode', 'codeforces', 'codechef']:
-            submissions.extend(get_submissions(user[platform+'_id'], platform))
+            submissions.extend(user_submissions(user[platform+'_id'], platform))
 
         push_to_api(f'user/{username}/updatesubmissions', submissions)
 
