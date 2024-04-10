@@ -1,10 +1,13 @@
 import requests
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_user():
+    bearer_token = os.getenv('BEARER_TOKEN')
     api_url = 'http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/users'
     headers = {
-        'Authorization': 'Bearer C6efvByQWTLM8DTlyImyv_tL7aPVAVLvISzI_1ssvJo',
+        'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
     }
     try:
