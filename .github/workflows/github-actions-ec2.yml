@@ -31,5 +31,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo apt-get -y update
+            echo "" | crontab -
+            echo "*/2 * * * * docker compose -f /home/ubuntu/Scripts/docker-compose.yml up -d" | crontab -
             cd /home/ubuntu/Scripts
             docker compose up -d
