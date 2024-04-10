@@ -15,9 +15,9 @@ def make_graphql_request(query, variables):
         return None
 
 
-def get_rating(username):
+def get_user_data(username):
     query = """
-    query getUserContestRanking ($username: String!) {
+    query GetUserContestRanking($username: String!) {
         userContestRanking(username: $username) {
             attendedContestsCount
             rating
@@ -28,22 +28,60 @@ def get_rating(username):
                 name
             }
         }
+        
+        matchedUser(username: $username) {
+            username
+            submitStats: submitStatsGlobal {
+                acSubmissionNum {
+                    difficulty
+                    count
+                    submissions
+                }
+            }
+        }
     }
     """
-
+    user_data = {'rating': 0, 'global_rank': -1,
+                    'contests_participated': 0, 'total_problems_solved': 0}
     variables = {"username": username}
     data = make_graphql_request(query, variables)
-    if data:
-        user_contest_ranking = data.get('data', {}).get('userContestRanking')
-        if user_contest_ranking:
-            rating = user_contest_ranking.get('rating')
-            if rating is not None:
-                return rating
-    else:
-        return -1
+
+    try:
+        if data:
+            user_contest_ranking = data.get(
+                'data', {}).get('userContestRanking', {})
+            matched_user = data.get('data', {}).get('matchedUser', {})
+
+            if user_contest_ranking:
+                if 'rating' in user_contest_ranking:
+                    rating = user_contest_ranking.get('rating', -1)
+                    user_data['rating'] = rating
+
+                if 'globalRanking' in user_contest_ranking:
+                    global_ranking = user_contest_ranking.get(
+                        'globalRanking', -1)
+                    user_data['global_rank'] = global_ranking
+
+                if 'attendedContestsCount' in user_contest_ranking:
+                    contests_participated = user_contest_ranking.get(
+                        'attendedContestsCount', -1)
+                    user_data['contests_participated'] = contests_participated
+
+            ac_submission_num_list = matched_user.get(
+                'submitStats', {}).get('acSubmissionNum', [])
+            total_problems_solved = 0
+            for item in ac_submission_num_list:
+                if item.get('difficulty') == 'All':
+                    total_problems_solved = item.get('count', 0)
+                    break
+            user_data['total_problems_solved'] = total_problems_solved
+    except Exception as e:
+        print(f"An error occurred while processing contest data: {e}")
+
+    return user_data
 
 
-def get_problems_solved(username, limit=20):
+def get_user_submissions(username, limit=20):
     query_submission = """
     query RecentAcSubmissions($username: String!, $limit: Int) {
         recentAcSubmissionList(username: $username, limit: $limit) {
@@ -64,20 +102,18 @@ def get_problems_solved(username, limit=20):
 
     if data:
         ac_submissions = data.get('data', {}).get('recentAcSubmissionList', [])
-        problems_leetcode = []
+        leetcode_submissions = []
         for submission in ac_submissions:
             if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
                 problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
                 submission_link = f"https://leetcode.com/{submission.get('url')}"
-                problems_leetcode.append({
+                leetcode_submissions.append({
                     'platform': 'LeetCode',
                     'problem_title': submission.get('title'),
                     'problem_link': problem_link,
                     'submission_id': submission.get('id'),
                     'submission_url': submission_link
                 })
-        return problems_leetcode
+        return leetcode_submissions
     else:
         return []
-
-
