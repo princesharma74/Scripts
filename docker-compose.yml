@@ -14,4 +14,4 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - .:/app
-    command: python3 -u main.py
+    command: python3 -u main.py >> /home/ubuntu/Scripts/output.log 2>&1

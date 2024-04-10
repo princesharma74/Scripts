@@ -1,0 +1,1 @@
+* * * * * docker compose -f /home/ubuntu/Scripts/docker-compose.yml up -d
