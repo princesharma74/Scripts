@@ -3,7 +3,7 @@ import datetime
 import json
 
 # Replace these with your actual LeetCode username and session cookie
-username = "ShivamBedar"
+username = "shivamanandbansal"
 
 # GraphQL query to fetch user's most active day and month
 query = """

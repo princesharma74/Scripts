@@ -1,14 +1,21 @@
 import requests
 from selenium_driver import driversetup
 import codeforces
+from datetime import datetime, timedelta
 import codechef
 import leetcode
+import upcomingContests
+import leetcodeContest
+import codeforcesContest
+import codechefContest
 import getUser
 import os
 from dotenv import load_dotenv
 
 driver = driversetup()
 load_dotenv()
+
+platforms = ['codeforces', 'codechef', 'leetcode']
 
 
 def user_submissions(username, platform):
@@ -21,19 +28,37 @@ def user_submissions(username, platform):
         return leetcode.get_user_submissions(username)
 
 
-def get_user_data(username, platform):
+def get_user_data(userinfo, platform):
     print(f"Getting rating for {platform}...")
     if platform == 'codeforces':
-        return codeforces.get_user_data(username)
+        return codeforces.get_user_data(userinfo)
     elif platform == 'codechef':
-        return codechef.get_user_data(driver, username)
+        return codechef.get_user_data(driver, userinfo)
     elif platform == 'leetcode':
-        return leetcode.get_user_data(username)
+        return leetcode.get_user_data(userinfo)
+
+
+def get_contest_data():
+    print("Getting upcoming contests...")
+    contest_data = upcomingContests.getCodeforcesContests()
+    contest_data.extend(upcomingContests.getCodechefContests())
+    contest_data.extend(upcomingContests.getLeetcodecontests())
+    return contest_data
+
+
+def get_contest_history(username, platform):
+    print(f"Getting contest history for {platform}...")
+    if platform == 'codeforces':
+        return codeforcesContest.codeforces_contestHistory(username)
+    elif platform == 'codechef':
+        return codechefContest.codechef_contestHistory(driver, username)
+    elif platform == 'leetcode':
+        return leetcodeContest.leetcode_contestHistory(username)
 
 
 def push_to_api(endpoint, data, method='POST'):
     bearer_token = os.getenv('BEARER_TOKEN')
-    api_endpoint = "http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/"
+    api_endpoint = "https://72zlh1l27i.execute-api.ap-south-1.amazonaws.com/dev/api/"
     api_url = api_endpoint + endpoint
     headers = {
         'Authorization': f'Bearer {bearer_token}',
@@ -54,45 +79,41 @@ def run_tasks(users):
     for user in users:
         print(f"Running tasks for {user['username']}...")
         username = user['username']
-        codechef_id = user['codechef_id']
-        codeforces_id = user['codeforces_id']
-        leetcode_id = user['leetcode_id']
-        user_data = {
-            'email': user['email'],
-            'first_name': user['first_name'],
-            'last_name': user['last_name'],
-        }
-        cfrating = get_user_data(codeforces_id, 'codeforces')
-        ccrating = get_user_data(codechef_id, 'codechef')
-        lcrating = get_user_data(leetcode_id, 'leetcode')
-
-        if (cfrating != -1):
-            user_data['codeforces_rating'] = cfrating['rating']
-            user_data['number_of_codeforces_contests'] = cfrating['contests_participated']
-            user_data['number_of_codeforces_questions'] = cfrating['total_problems_solved']
-            user_data['global_rank_codeforces'] = cfrating['global_rank']
-        if (ccrating != -1):
-            user_data['codechef_rating'] = ccrating['rating']
-            user_data['number_of_codechef_contests'] = ccrating['contests_participated']
-            user_data['number_of_codechef_questions'] = ccrating['total_problems_solved']
-            user_data['global_rank_codechef'] = ccrating['global_rank']
-        if (lcrating != -1):
-            user_data['leetcode_rating'] = lcrating['rating']
-            user_data['number_of_leetcode_contests'] = lcrating['contests_participated']
-            user_data['number_of_leetcode_questions'] = lcrating['total_problems_solved']
-            user_data['global_rank_leetcode'] = lcrating['global_rank']
-        push_to_api(f'user/{username}/update', user_data, method='PATCH')
-
+        user_data = {}
         submissions = []
-        for platform in ['leetcode', 'codeforces', 'codechef']:
-            submissions.extend(user_submissions(user[platform+'_id'], platform))
+        contest_data = []
+        for platform in platforms:
+            if platform in user and 'user_id' in user[platform] and user[platform]['user_id'] is not None:
+                user_data[platform] = get_user_data(user[platform], platform)
+                submissions.extend(user_submissions(
+                    user[platform]['user_id'], platform))
+                contest_data.extend(get_contest_history(
+                    user[platform]['user_id'], platform))
+        push_to_api(f'user/{username}/update', user_data, method='PATCH')
+        # print(contest_data)
+        push_to_api(f'user/{username}/create-rating-changes', contest_data)
+        # print(user_data)
+        print(f"Data for {username} fetched successfully.")
 
         push_to_api(f'user/{username}/updatesubmissions', submissions)
+        # print(submissions)
+        print(f"Submissions for {username} fetched successfully.")
 
 
 def main():
     users = getUser.get_user()
     run_tasks(users)
+    # print(users)
+    # print("Getting upcoming contests...")
+    # contest_data = upcomingContests.getCodeforcesContests()
+    # contest_data.extend(upcomingContests.getCodechefContests())
+    # contest_data.extend(upcomingContests.getLeetcodecontests())
+    # push_to_api('contests/create', contest_data)
+    # contestdata = codeforcesContest.codeforces_contestHistory("aar9av")
+    # contestdata.extend(
+    #     codechefContest.codechef_contestHistory(driver, "aar9av"))
+    # print(contestdata)
+    # push_to_api('user/aar9av/create-rating-changes', contestdata)
 
 
 if __name__ == "__main__":

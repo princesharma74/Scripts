@@ -5,14 +5,22 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.support import expected_conditions as EC
 import re
 from selenium_driver import driversetup
-import random
+from datetime import datetime
+import pytz
 from bs4 import BeautifulSoup
+import requests
 
 
-def get_user_data(driver, username):
+import re
+
+
+def get_user_data(driver, userinfo):
+    username = userinfo['user_id']
     url = f"https://www.codechef.com/users/{username}"
-    user_data = {'rating': 0, 'contests_participated': 0,
-                   'highest_rating': 0, 'global_rank': -1, 'country_rank': -1, 'total_problems_solved': 0}
+
+    response = requests.get(f'https://www.codechef.com/users/{username}')
+    if (response.status_code == 404):
+        print(f"codechef userdata: username {username} not found")
     try:
         driver.get(url)
         time.sleep(3)
@@ -24,7 +32,7 @@ def get_user_data(driver, username):
             cf_rating = rating_element.text.strip()
             match = re.search(r'\d+', cf_rating)
             if match:
-                user_data['rating'] = int(match.group())
+                userinfo['rating'] = int(match.group())
 
         # Extracting highest rating
         rating_header = soup.find('div', class_='rating-header text-center')
@@ -35,7 +43,7 @@ def get_user_data(driver, username):
                 highest_rating_match = re.search(
                     r'Highest Rating (\d+)', highest_rating_text)
                 if highest_rating_match:
-                    user_data['highest_rating'] = int(
+                    userinfo['highest_rating'] = int(
                         highest_rating_match.group(1))
 
         # Extracting contests participated
@@ -45,36 +53,48 @@ def get_user_data(driver, username):
             contests_text = contests_info.text.strip()
             contests_count = contests_text.split(':')[-1].strip()
             if contests_count.isdigit():
-                user_data['contests_participated'] = int(contests_count)
+                userinfo['number_of_contests'] = int(contests_count)
 
         # Extracting highest rating, global rank, and country rank
         rank_info = soup.find('div', class_='rating-ranks')
         if rank_info:
             rank_items = rank_info.find_all('strong')
             if len(rank_items) >= 2:
-                user_data['global_rank'] = int(rank_items[0].text.strip())
-                user_data['country_rank'] = int(rank_items[1].text.strip())
+                userinfo['global_rank'] = int(rank_items[0].text.strip())
+                userinfo['country_rank'] = int(rank_items[1].text.strip())
+
         # Extracting total problems solved
         problems_section = soup.find(
             'section', class_='rating-data-section problems-solved')
         if problems_section:
-            # Find the Practice Problems heading
-            practice_heading = problems_section.find(
-                'h3', text=re.compile(r'Practice Problems \(\d+\):'))
-            if practice_heading:
-                # Extract the number using regular expression
-                match = re.search(r'\((\d+)\)', practice_heading.text)
+            # Find and process headings within the problems section
+            headings = problems_section.find_all('h3')
+            userinfo['number_of_questions'] = int(0)
+            for heading in headings:
+                # Check if the heading text matches the pattern for problem count
+                match = re.search(r'([a-zA-Z\s]+)\s\((\d+)\):', heading.text)
                 if match:
-                    total_problems_solved = int(match.group(1))
-                    user_data['total_problems_solved'] = total_problems_solved
+                    # problem_type = match.group(1).strip()
+                    problems_solved = int(match.group(2))
+                    userinfo['number_of_questions'] += problems_solved
+                    # print("problemType:", problem_type)
+
     except Exception as e:
         print("An error occurred:", str(e))
 
-    return user_data
+    return userinfo
 
 
 def get_user_submissions(driver, username):
     url = f"https://www.codechef.com/users/{username}"
+    response = requests.get(url, allow_redirects=False)
+
+    # Check if the request was redirected
+    if response.status_code != 200:  # 302 status code indicates redirection
+        redirected_url = response.headers['Location']
+        if redirected_url == 'https://www.codechef.com/':
+            print(f"The username '{username}' does not exist on CodeChef.")
+            return []
     max_pages = 3
     codechef_submissions = []
     pattern = r"\d{1,2}\s(sec|min|hour)s?\sago"
@@ -89,6 +109,18 @@ def get_user_submissions(driver, username):
             for row in table.find_elements(By.XPATH, ".//tr"):
                 tim = row.find_elements(
                     By.XPATH, ".//td")[0].get_attribute("title")
+                # print("Time:", tim)
+                if re.match(pattern, tim):
+                    tim = datetime.now().strftime('%I:%M %p %d/%m/%y')
+                    continue
+                date = datetime.strptime(
+                    tim, '%I:%M %p %d/%m/%y')
+
+                # Set the timezone to 'Asia/Kolkata' (+05:30)
+                date = pytz.timezone('Asia/Kolkata').localize(date)
+
+                # Format the datetime
+                formatted_date = date.strftime('%Y-%m-%dT%H:%M:%S%z')
                 status = row.find_elements(
                     By.XPATH, ".//td")[2].find_element(By.XPATH, ".//span").get_attribute("title")
                 title = row.find_elements(By.XPATH, ".//td")[1].text
@@ -97,21 +129,23 @@ def get_user_submissions(driver, username):
                 # submission_id = submission_link.split('/')[-1]
                 # print("Submission Link:", submission_link)
 
-                if re.match(pattern, tim) and status == "accepted":
+                # if re.match(pattern, tim) and status == "accepted":
+                if status == "accepted":
                     problem_link = f"https://www.codechef.com/problems/{title}"
                     # print(submission_link)
                     if (submission_link != None):
                         submission_id = submission_link.split('/')[-1]
                     else:
                         submission_id = 11111111
-                        submission_link = "No Submission Link Available"
+                        submission_link = "No_Submission_Link_Available"
                     # append dictionary with following items title, problem_link, submission_link, submission_id, 'Codechef', username
                     codechef_submissions.append({
                         'platform': 'Codechef',
                         'problem_title': title,
                         'problem_link': problem_link,
                         'submission_url': submission_link,
-                        'submission_id': submission_id
+                        'submission_id': submission_id,
+                        'submitted_at': formatted_date,
                     })
             try:
                 next_button = driver.find_element(
@@ -131,4 +165,24 @@ def get_user_submissions(driver, username):
 
     return codechef_submissions
 
-# print()
+
+# driversetup function is defined in selenium_driver.py
+# driver = driversetup()
+
+# usernameInv = "pdk123" // Invalid user
+# usernameV = "princesharma74" // Valid user
+
+# print(get_user_submissions(driver, usernameV)) // to check submissions of valid user
+# print(get_user_submissions(driver, usernameInv)) // to check submissions of invalid user
+
+# userinfov = {'id': 'princesharma74', 'rating': 3, 'global_rank': 1121,
+#           'number_of_contests': 12, 'number_of_questions': 34, 'user': 'princesharma74'}  // Valid userData
+
+# print(get_user_data(driver, userinfoV))  // to check user data of valid user
+
+# userinfoInv = {'id': 'pdk123', 'rating': null, 'global_rank': null,
+#         'number_of_contests': null, 'number_of_questions': null, 'user': 'pappu'}  // Invalid userData
+
+# print(get_user_data(driver, userinfoInv))  // to check user data of invalid user
+
+# driver.quit()

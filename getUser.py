@@ -5,7 +5,7 @@ load_dotenv()
 
 def get_user():
     bearer_token = os.getenv('BEARER_TOKEN')
-    api_url = 'http://ec2-13-48-96-215.eu-north-1.compute.amazonaws.com/api/users'
+    api_url = 'https://72zlh1l27i.execute-api.ap-south-1.amazonaws.com/dev/api/users'
     headers = {
         'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'

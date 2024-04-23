@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime, timedelta
+import pytz
 
 LEETCODE_API_URL = 'https://leetcode.com/graphql'
 
@@ -15,34 +16,25 @@ def make_graphql_request(query, variables):
         return None
 
 
-def get_user_data(username):
+def get_user_data(userinfo):
     query = """
-    query GetUserContestRanking($username: String!) {
+    query UserContestRanking($username: String!) {
         userContestRanking(username: $username) {
-            attendedContestsCount
             rating
             globalRanking
-            totalParticipants
-            topPercentage
-            badge {
-                name
-            }
+            attendedContestsCount
         }
-        
         matchedUser(username: $username) {
-            username
-            submitStats: submitStatsGlobal {
+            submitStats {
                 acSubmissionNum {
                     difficulty
                     count
-                    submissions
                 }
             }
         }
     }
     """
-    user_data = {'rating': 0, 'global_rank': -1,
-                    'contests_participated': 0, 'total_problems_solved': 0}
+    username = userinfo['user_id']
     variables = {"username": username}
     data = make_graphql_request(query, variables)
 
@@ -55,17 +47,17 @@ def get_user_data(username):
             if user_contest_ranking:
                 if 'rating' in user_contest_ranking:
                     rating = user_contest_ranking.get('rating', -1)
-                    user_data['rating'] = rating
+                    userinfo['rating'] = int(rating)
 
                 if 'globalRanking' in user_contest_ranking:
                     global_ranking = user_contest_ranking.get(
                         'globalRanking', -1)
-                    user_data['global_rank'] = global_ranking
+                    userinfo['global_rank'] = global_ranking
 
                 if 'attendedContestsCount' in user_contest_ranking:
                     contests_participated = user_contest_ranking.get(
                         'attendedContestsCount', -1)
-                    user_data['contests_participated'] = contests_participated
+                    userinfo['number_of_contests'] = contests_participated
 
             ac_submission_num_list = matched_user.get(
                 'submitStats', {}).get('acSubmissionNum', [])
@@ -74,11 +66,11 @@ def get_user_data(username):
                 if item.get('difficulty') == 'All':
                     total_problems_solved = item.get('count', 0)
                     break
-            user_data['total_problems_solved'] = total_problems_solved
+            userinfo['number_of_questions'] = total_problems_solved
     except Exception as e:
         print(f"An error occurred while processing contest data: {e}")
 
-    return user_data
+    return userinfo
 
 
 def get_user_submissions(username, limit=20):
@@ -96,24 +88,37 @@ def get_user_submissions(username, limit=20):
     """
 
     variables = {'username': username, 'limit': limit}
-    last_24_hours_timestamp = int(
-        (datetime.now() - timedelta(hours=24)).timestamp())
+    
+    # last_24_hours_timestamp = int(
+    #     (datetime.now() - timedelta(hours=24)).timestamp())
     data = make_graphql_request(query_submission, variables)
 
     if data:
         ac_submissions = data.get('data', {}).get('recentAcSubmissionList', [])
         leetcode_submissions = []
         for submission in ac_submissions:
-            if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
-                problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
-                submission_link = f"https://leetcode.com/{submission.get('url')}"
-                leetcode_submissions.append({
-                    'platform': 'LeetCode',
-                    'problem_title': submission.get('title'),
-                    'problem_link': problem_link,
-                    'submission_id': submission.get('id'),
-                    'submission_url': submission_link
-                })
+            # if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
+            problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
+            submission_link = f"https://leetcode.com/{submission.get('url')}"
+            submission_time = datetime.fromtimestamp(
+                int(submission.get('timestamp')))
+            date = submission_time.astimezone(pytz.timezone('Asia/Kolkata'))
+            formatted_date = date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            leetcode_submissions.append({
+                'platform': 'LeetCode',
+                'problem_title': submission.get('title'),
+                'problem_link': problem_link,
+                'submission_id': submission.get('id'),
+                'submission_url': submission_link,
+                'submitted_at': formatted_date
+            })
         return leetcode_submissions
     else:
         return []
+
+
+# print(get_user_data("))
+# userinfo = {'id': 'pdk123', 'rating': 1598, 'global_rank': 231234,
+#             'number_of_contests': 5, 'number_of_questions': 45, 'user': 'princesharma74'}
+# print(get_user_data(userinfo))
+# print(get_user_submissions('pdk123'))
