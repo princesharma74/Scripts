@@ -1,7 +1,6 @@
 import requests
 from datetime import datetime, timedelta, timezone
 
-
 def leetcode_contestHistory(username):
     query = """
     query userContestRankingHistory($username: String!) {
@@ -52,17 +51,14 @@ def leetcode_contestHistory(username):
                 contestinfo['final_rating'] = int(history['rating'])
                 contestinfo['number_of_problems_solved'] = history['problemsSolved']
                 contestinfo['rank'] = history['ranking']
-                time = history['contest']['startTime']
-                timestamp = int(time)
-                datetime_obj = datetime.fromtimestamp(timestamp)
-                # Convert the datetime object to the desired format
-                formatted_time = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
-                # Adjust the timezone offset
-                formatted_time_with_timezone = datetime_obj.astimezone(
-                    timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%dT%H:%M:%S%z")
-
                 contestinfo['contest'] = {
-                    'title': history['contest']['title'], 'start_time': formatted_time_with_timezone, 'platform': 'Leetcode', 'url': f"https://leetcode.com/contest/{(history['contest']['title']).replace(' ', '-').lower()}", 'duration': '', 'total_questions': 4}
+                    'title': history['contest']['title'],
+                    'start_time': datetime.utcfromtimestamp(history['contest']['startTime']).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    'platform': 'leetcode',
+                    'url': f"https://leetcode.com/contest/{(history['contest']['title']).replace(' ', '-').lower()}",
+                    'duration': '',
+                    'total_questions': 4
+                }
                 rankingHistory.append(contestinfo)
 
     else:
@@ -70,18 +66,7 @@ def leetcode_contestHistory(username):
         print("Error fetching data. Status code:", response.status_code)
     return rankingHistory
 
-
-# usernameV = 'coder_s_176'  # valid username
-# checking history for valid username
-# contestHistory = leetcode_contestHistory(usernameV)
-
+# Example usage:
+# username = 'coder_s_176'  # valid username
+# contestHistory = leetcode_contestHistory(username)
 # print(contestHistory)
-# usernameInv = 'shivamBedar'  # invalid username
-# # checking history for invalid username
-# contestHistory = leetcode_contestHistory(usernameInv)
-
-
-# print("Contest History:")
-# for contest in contestHistory:
-#     print(contest)
-#     print("\n")

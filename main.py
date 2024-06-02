@@ -11,12 +11,14 @@ import codechefContest
 import getUser
 import os
 from dotenv import load_dotenv
+import json
 
 driver = driversetup()
 load_dotenv()
 
 platforms = ['codeforces', 'codechef', 'leetcode']
 
+api_endpoint = os.getenv('BACKEND_API_URL')
 
 def user_submissions(username, platform):
     print(f"Getting submissions for {platform}...")
@@ -58,7 +60,6 @@ def get_contest_history(username, platform):
 
 def push_to_api(endpoint, data, method='POST'):
     bearer_token = os.getenv('BEARER_TOKEN')
-    api_endpoint = "https://72zlh1l27i.execute-api.ap-south-1.amazonaws.com/dev/api/"
     api_url = api_endpoint + endpoint
     headers = {
         'Authorization': f'Bearer {bearer_token}',
@@ -77,42 +78,43 @@ def push_to_api(endpoint, data, method='POST'):
 
 def run_tasks(users):
     for user in users:
-        print(f"Running tasks for {user['username']}...")
+        print(f"Running tasks for [{user['first_name']}] @{user['username']}...")
         username = user['username']
+        email = user['email']
         user_data = {}
         submissions = []
         contest_data = []
+        platforms = ['codeforces', 'codechef', 'leetcode']
         for platform in platforms:
-            if platform in user and 'user_id' in user[platform] and user[platform]['user_id'] is not None:
+            if platform in user and f'{platform}_id' in user[platform] and user[platform][f'{platform}_id'] is not None:
                 user_data[platform] = get_user_data(user[platform], platform)
                 submissions.extend(user_submissions(
-                    user[platform]['user_id'], platform))
+                    user[platform][f'{platform}_id'], platform))
                 contest_data.extend(get_contest_history(
-                    user[platform]['user_id'], platform))
-        push_to_api(f'user/{username}/update', user_data, method='PATCH')
+                    user[platform][f'{platform}_id'], platform))
+        # print(json.dumps(contest_data, indent=4))
+        push_to_api(f'/users/{email}/update', user_data, method='PATCH')
         # print(contest_data)
-        push_to_api(f'user/{username}/create-rating-changes', contest_data)
+        push_to_api(f'/users/{email}/ratingchange/updateAll', contest_data, method='PATCH')
         # print(user_data)
         print(f"Data for {username} fetched successfully.")
-
-        push_to_api(f'user/{username}/updatesubmissions', submissions)
-        # print(submissions)
+        push_to_api(f'/users/{email}/submissions/update', submissions, method='PATCH')
         print(f"Submissions for {username} fetched successfully.")
 
 
 def main():
     users = getUser.get_user()
     run_tasks(users)
-    # print(users)
-    # print("Getting upcoming contests...")
-    # contest_data = upcomingContests.getCodeforcesContests()
-    # contest_data.extend(upcomingContests.getCodechefContests())
-    # contest_data.extend(upcomingContests.getLeetcodecontests())
-    # push_to_api('contests/create', contest_data)
+    # print(json.dumps(users, indent=4))
+    print("Getting upcoming contests...")
+    contest_data = upcomingContests.getCodeforcesContests()
+    contest_data.extend(upcomingContests.getCodechefContests())
+    contest_data.extend(upcomingContests.getLeetcodecontests())
+    # print(json.dumps(contest_data, indent=4))
+    push_to_api('/contests/update', contest_data, method='PATCH')
     # contestdata = codeforcesContest.codeforces_contestHistory("aar9av")
     # contestdata.extend(
     #     codechefContest.codechef_contestHistory(driver, "aar9av"))
-    # print(contestdata)
     # push_to_api('user/aar9av/create-rating-changes', contestdata)
 
 

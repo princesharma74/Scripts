@@ -1,7 +1,6 @@
 import requests
 import json
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, timezone
 
 def getCodeforcesContests():
     response = requests.get("https://codeforces.com/api/contest.list")
@@ -12,26 +11,25 @@ def getCodeforcesContests():
         for contest in contests:
             if contest["phase"] == "BEFORE":
                 codeforcesContest = {}
-                codeforcesContest["platform"] = "Codeforces"
+                codeforcesContest["platform"] = "codeforces"
                 codeforcesContest["title"] = contest["name"]
-                codeforcesContest["url"] = "https://codeforces.com/contests/" + str(
-                    contest["id"])
-                codeforcesContest["start_time"] = datetime.strftime(datetime.fromtimestamp(
-                    contest["startTimeSeconds"]), '%Y-%m-%dT%H:%M:%S') + '+0530'
-                codeforcesContest["duration"] = "PT" + str(contest["durationSeconds"] // 3600).zfill(
-                    2) + "H" + str((contest["durationSeconds"] % 3600) // 60).zfill(2) + "M"
-
+                codeforcesContest["url"] = "https://codeforces.com/contests/" + str(contest["id"])
+                # Convert start time to UTC and format as ISO 8601
+                start_time = datetime.fromtimestamp(contest["startTimeSeconds"], tz=timezone.utc)
+                start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+                codeforcesContest["start_time"] = start_time_iso
+                codeforcesContest["duration"] = "PT" + str(contest["durationSeconds"] // 3600).zfill(2) + "H" + str((contest["durationSeconds"] % 3600) // 60).zfill(2) + "M"
+                
                 codeforcesContests.append(codeforcesContest)
     return codeforcesContests
 
-
 def getCodechefContests():
     contest_details = []
-    start_date = datetime(2024, 4, 18)
+    start_date = datetime(2024, 4, 18, tzinfo=timezone.utc)
     start_num = 130
-    today = datetime.now()
+    today = datetime.now(tz=timezone.utc)
     contest_since_start = (today - start_date).days // 7
-    current_num = start_num + contest_since_start+1
+    current_num = start_num + contest_since_start + 1
     current_date = today + timedelta(days=(2 - today.weekday() + 7) % 7)
 
     # Find the next Wednesday
@@ -40,12 +38,12 @@ def getCodechefContests():
         contest_name = f"Starters {i + current_num}"
         # Generate the contest URL
         contest_url = f"https://www.codechef.com/START{i + current_num}"
-        # Calculate the start time (assuming 2:30 PM)
-        start_time = current_date.replace(hour=20, minute=0, second=0)
+        # Calculate the start time (assuming 2:30 PM UTC)
+        start_time = current_date.replace(hour=14, minute=30, second=0, microsecond=0)
         # Add 2 hours to the start time for the duration
         end_time = start_time + timedelta(hours=2)
         # Format start time and duration as ISO 8601 strings
-        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%S%z')
+        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
         duration_iso = "PT2H"  # Duration is 2 hours
         # Define the total number of questions
         total_questions = 8
@@ -53,7 +51,7 @@ def getCodechefContests():
         contest_info = {
             "title": contest_name,
             "url": contest_url,
-            "platform": "Codechef",
+            "platform": "codechef",
             "start_time": start_time_iso,
             "duration": duration_iso,
             "total_questions": total_questions
@@ -65,29 +63,27 @@ def getCodechefContests():
 
     return contest_details
 
-
 def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
     contest_details = []
     current_date = start_date
-    for _ in range(num_days):
+    for i in range(num_days):
         # Generate the contest name and URL based on contest type
         if contest_type == "weekly":
-            contest_name = f"Weekly Contest {contest_num + _}"
-            contest_url = f"https://leetcode.com/contest/weekly-contest-{contest_num + _}/"
+            contest_name = f"Weekly Contest {contest_num + i}"
+            contest_url = f"https://leetcode.com/contest/weekly-contest-{contest_num + i}/"
 
         elif contest_type == "biweekly":
-            contest_name = f"Biweekly Contest {_+ contest_num}"
-            contest_url = f"https://leetcode.com/contest/biweekly-contest-{_+contest_num}/"
+            contest_name = f"Biweekly Contest {contest_num + i}"
+            contest_url = f"https://leetcode.com/contest/biweekly-contest-{contest_num + i}/"
         else:
-            raise ValueError(
-                "Invalid contest type. Must be 'weekly' or 'biweekly'.")
+            raise ValueError("Invalid contest type. Must be 'weekly' or 'biweekly'.")
 
         # Calculate the start time (assuming 8:00 AM in Indian timezone)
-        start_time = current_date.replace(hour=8, minute=0, second=0)
+        start_time = current_date.replace(hour=8, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
         # Add 1.5 hours to the start time for the duration
         end_time = start_time + timedelta(hours=1, minutes=30)
         # Format start time and duration as ISO 8601 strings
-        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%S%z')
+        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
         duration_iso = "PT1H30M"  # Duration is 1.5 hours
         # Define the total number of questions
         total_questions = 4
@@ -95,7 +91,7 @@ def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
         contest_info = {
             "title": contest_name,
             "url": contest_url,
-            "platform": "Leetcode",
+            "platform": "leetcode",
             "start_time": start_time_iso,
             "duration": duration_iso,
             "total_questions": total_questions
@@ -103,8 +99,7 @@ def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
         # Append contest details to the list
         contest_details.append(contest_info)
         # Move to the next contest date for the next iteration
-        current_date += timedelta(
-            weeks=2) if contest_type == "biweekly" else timedelta(weeks=1)
+        current_date += timedelta(weeks=2) if contest_type == "biweekly" else timedelta(weeks=1)
 
     return contest_details
 

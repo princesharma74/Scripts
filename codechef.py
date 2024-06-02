@@ -15,7 +15,7 @@ import re
 
 
 def get_user_data(driver, userinfo):
-    username = userinfo['user_id']
+    username = userinfo['codechef_id']
     url = f"https://www.codechef.com/users/{username}"
 
     response = requests.get(f'https://www.codechef.com/users/{username}')
@@ -120,7 +120,7 @@ def get_user_submissions(driver, username):
                 date = pytz.timezone('Asia/Kolkata').localize(date)
 
                 # Format the datetime
-                formatted_date = date.strftime('%Y-%m-%dT%H:%M:%S%z')
+                formatted_date = date.isoformat()
                 status = row.find_elements(
                     By.XPATH, ".//td")[2].find_element(By.XPATH, ".//span").get_attribute("title")
                 title = row.find_elements(By.XPATH, ".//td")[1].text
@@ -138,13 +138,13 @@ def get_user_submissions(driver, username):
                     else:
                         submission_id = 11111111
                         submission_link = "No_Submission_Link_Available"
-                    # append dictionary with following items title, problem_link, submission_link, submission_id, 'Codechef', username
+                    # append dictionary with following items title, problem_link, submission_link, submission_id, 'codechef', username
                     codechef_submissions.append({
-                        'platform': 'Codechef',
+                        'platform': 'codechef',
                         'problem_title': title,
                         'problem_link': problem_link,
                         'submission_url': submission_link,
-                        'submission_id': submission_id,
+                        'submission_id': int(submission_id),
                         'submitted_at': formatted_date,
                     })
             try:

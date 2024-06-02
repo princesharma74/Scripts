@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 
 def get_user_data(userinfo):
-    username = userinfo['user_id']
+    username = userinfo['codeforces_id']
     response = requests.get(
         f'https://codeforces.com/contests/with/{username}', allow_redirects=False)
 
@@ -13,7 +13,7 @@ def get_user_data(userinfo):
         print(f"codeforces userdata: user {username} not found")
     try:
         response = requests.post(
-            'https://codeforces.com/api/user.rating?handle=' + userinfo['user_id'])
+            'https://codeforces.com/api/user.rating?handle=' + userinfo['codeforces_id'])
         response.raise_for_status()
         data = response.json()
         if data and "result" in data:
@@ -27,7 +27,7 @@ def get_user_data(userinfo):
             print("No data available.")
 
         userinfo['number_of_questions'] = get_total_problems_solved(
-            userinfo['user_id'])
+            userinfo['codeforces_id'])
     except requests.exceptions.RequestException as e:
         print("Error fetching data:", e)
     except KeyError as ke:
@@ -70,24 +70,24 @@ def get_user_submissions(handle, count=100):
                 date = datetime.fromtimestamp(
                     creation_time, pytz.timezone('Asia/Kolkata'))
                 # Format the datetime
-                formatted_date = date.strftime('%Y-%m-%dT%H:%M:%S%z')
+                formatted_date = date.isoformat()
                 # if creation_time > recent_time and submission['verdict'] == 'OK':
                 if submission['verdict'] == 'OK':
                     problem_name = submission['problem']['name']
                     problem_url = f"https://codeforces.com/problemset/problem/{submission['problem']['contestId']}/{submission['problem']['index']}"
                     submission_url = f"https://codeforces.com/contest/{submission['contestId']}/submission/{submission['id']}"
                     codeforces_submissions.append({
-                        'platform': 'Codeforces',
+                        'platform': 'codeforces',
                         'problem_title': problem_name,
                         'problem_link': problem_url,
-                        'submission_id': submission['id'],
+                        'submission_id': int(submission['id']),
                         'submission_url': submission_url,
                         'submitted_at': formatted_date
                     })
-        # print("Codeforces ended")
+        # print("codeforces ended")
         return codeforces_submissions
     else:
-        print("Error fetching data from Codeforces API.")
+        print("Error fetching data from codeforces API.")
         return ''
 
 

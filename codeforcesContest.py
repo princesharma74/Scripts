@@ -44,7 +44,7 @@ def codeforces_contestHistory(username):
                 formatted_time = datet.strftime("%Y-%m-%dT%H:%M:%S+05:30")
                 contest_no = cols[1].find('a')['href'].strip()
                 contest_info['contest'] = {'title': cols[1].text.strip(
-                ), 'start_time': formatted_time, 'platform': 'Codeforces', 'url': f"https://codeforces.com{contest_no}", 'duration': '',
+                ), 'start_time': formatted_time, 'platform': 'codeforces', 'url': f"https://codeforces.com{contest_no}", 'duration': '',
                     'total_questions': 8}
                 rating_change_data.append(contest_info)
 

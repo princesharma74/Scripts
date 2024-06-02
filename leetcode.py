@@ -34,7 +34,7 @@ def get_user_data(userinfo):
         }
     }
     """
-    username = userinfo['user_id']
+    username = userinfo['leetcode_id']
     variables = {"username": username}
     data = make_graphql_request(query, variables)
 
@@ -103,12 +103,12 @@ def get_user_submissions(username, limit=20):
             submission_time = datetime.fromtimestamp(
                 int(submission.get('timestamp')))
             date = submission_time.astimezone(pytz.timezone('Asia/Kolkata'))
-            formatted_date = date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            formatted_date = date.isoformat()
             leetcode_submissions.append({
-                'platform': 'LeetCode',
+                'platform': 'leetcode',
                 'problem_title': submission.get('title'),
                 'problem_link': problem_link,
-                'submission_id': submission.get('id'),
+                'submission_id': int(submission.get('id')),
                 'submission_url': submission_link,
                 'submitted_at': formatted_date
             })

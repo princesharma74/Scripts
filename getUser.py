@@ -3,9 +3,11 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+api_endpoint = os.getenv('BACKEND_API_URL')
+
 def get_user():
     bearer_token = os.getenv('BEARER_TOKEN')
-    api_url = 'https://72zlh1l27i.execute-api.ap-south-1.amazonaws.com/dev/api/users'
+    api_url = api_endpoint + "/users"
     headers = {
         'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'

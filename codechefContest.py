@@ -90,7 +90,7 @@ def codechef_contestHistory(driver, username):
                         contestNo = word[starters_index + 1]
                         # print(contestNo, contest_name)
                         contest_info['contest'] = {'title': contest_name, 'start_time': time,
-                                                   'platform': 'Codechef', 'url': f"https://www.codechef.com/START{contestNo}", 'duration': '', 'total_questions': 8}
+                                                   'platform': 'codechef', 'url': f"https://www.codechef.com/START{contestNo}", 'duration': '', 'total_questions': 8}
                         rating_change_data.append(contest_info)
                 except json.JSONDecodeError as e:
                     print("Error decoding JSON:", e)
