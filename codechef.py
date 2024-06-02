@@ -71,13 +71,13 @@ def get_user_data(driver, userinfo):
             headings = problems_section.find_all('h3')
             userinfo['number_of_questions'] = int(0)
             for heading in headings:
-                # Check if the heading text matches the pattern for problem count
-                match = re.search(r'([a-zA-Z\s]+)\s\((\d+)\):', heading.text)
-                if match:
-                    # problem_type = match.group(1).strip()
-                    problems_solved = int(match.group(2))
-                    userinfo['number_of_questions'] += problems_solved
-                    # print("problemType:", problem_type)
+                if 'Total Problems Solved' in heading.text:
+                    # print(heading)
+                    match = re.search(r'\d+', heading.text)
+                    if match:
+                        # problem_type = match.group(1).strip()
+                        problems_solved = int(match.group())
+                        userinfo['number_of_questions'] += problems_solved
 
     except Exception as e:
         print("An error occurred:", str(e))

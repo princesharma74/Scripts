@@ -99,7 +99,7 @@ def get_user_submissions(username, limit=20):
         for submission in ac_submissions:
             # if int(submission.get('timestamp', 0)) >= last_24_hours_timestamp:
             problem_link = f"https://leetcode.com/problems/{submission.get('titleSlug')}/"
-            submission_link = f"https://leetcode.com/{submission.get('url')}"
+            submission_link = f"https://leetcode.com{submission.get('url')}"
             submission_time = datetime.fromtimestamp(
                 int(submission.get('timestamp')))
             date = submission_time.astimezone(pytz.timezone('Asia/Kolkata'))
