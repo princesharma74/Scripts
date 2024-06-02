@@ -109,7 +109,7 @@ def main():
     contest_data = upcomingContests.getCodeforcesContests()
     contest_data.extend(upcomingContests.getCodechefContests())
     contest_data.extend(upcomingContests.getLeetcodecontests())
-    # print(json.dumps(contest_data, indent=4))
+    # print(json.dumps(contest_data, indent=4)) #check
     push_to_api('/contests/update', contest_data, method='PATCH')
     # contestdata = codeforcesContest.codeforces_contestHistory("aar9av")
     # contestdata.extend(
