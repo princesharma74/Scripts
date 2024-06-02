@@ -105,7 +105,6 @@ def run_tasks(users):
 def main():
     users = getUser.get_user()
     run_tasks(users)
-    # print(json.dumps(users, indent=4))
     print("Getting upcoming contests...")
     contest_data = upcomingContests.getCodeforcesContests()
     contest_data.extend(upcomingContests.getCodechefContests())
