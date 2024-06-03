@@ -75,7 +75,6 @@ def push_to_api(endpoint, data, method='POST'):
     except requests.exceptions.RequestException as e:
         print(f"Failed to push data. Error: {e}")
 
-
 def run_tasks(users):
     for user in users:
         print(f"Running tasks for [{user['first_name']}] @{user['username']}...")
@@ -86,12 +85,12 @@ def run_tasks(users):
         contest_data = []
         platforms = ['codeforces', 'codechef', 'leetcode']
         for platform in platforms:
-            if platform in user and f'{platform}_id' in user[platform] and user[platform][f'{platform}_id'] is not None:
-                user_data[platform] = get_user_data(user[platform], platform)
-                submissions.extend(user_submissions(
-                    user[platform][f'{platform}_id'], platform))
-                contest_data.extend(get_contest_history(
-                    user[platform][f'{platform}_id'], platform))
+            platform_data = user.get(platform)
+            if platform_data and platform_data.get(f'{platform}_id') is not None:
+                platform_id = platform_data[f'{platform}_id']
+                user_data[platform] = get_user_data(platform_data, platform)
+                submissions.extend(user_submissions(platform_id, platform))
+                contest_data.extend(get_contest_history(platform_id, platform))
         # print(json.dumps(contest_data, indent=4))
         push_to_api(f'/users/{email}/update', user_data, method='PATCH')
         # print(contest_data)
@@ -100,6 +99,7 @@ def run_tasks(users):
         print(f"Data for {username} fetched successfully.")
         push_to_api(f'/users/{email}/submissions/update', submissions, method='PATCH')
         print(f"Submissions for {username} fetched successfully.")
+
 
 
 def main():

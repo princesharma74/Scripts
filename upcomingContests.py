@@ -1,6 +1,7 @@
 import requests
 import json
 from datetime import datetime, timedelta, timezone
+import pytz
 
 def getCodeforcesContests():
     response = requests.get("https://codeforces.com/api/contest.list")
@@ -69,17 +70,17 @@ def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
     for i in range(num_days):
         # Generate the contest name and URL based on contest type
         if contest_type == "weekly":
+            start_time = current_date.replace(hour=2, minute=30, second=0, microsecond=0, tzinfo=timezone.utc)
             contest_name = f"Weekly Contest {contest_num + i}"
             contest_url = f"https://leetcode.com/contest/weekly-contest-{contest_num + i}/"
 
         elif contest_type == "biweekly":
+            start_time = current_date.replace(hour=14, minute=30, second=0, microsecond=0, tzinfo=timezone.utc)
             contest_name = f"Biweekly Contest {contest_num + i}"
             contest_url = f"https://leetcode.com/contest/biweekly-contest-{contest_num + i}/"
         else:
             raise ValueError("Invalid contest type. Must be 'weekly' or 'biweekly'.")
 
-        # Calculate the start time (assuming 8:00 AM in Indian timezone)
-        start_time = current_date.replace(hour=8, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
         # Add 1.5 hours to the start time for the duration
         end_time = start_time + timedelta(hours=1, minutes=30)
         # Format start time and duration as ISO 8601 strings

@@ -118,7 +118,6 @@ def get_user_submissions(driver, username):
 
                 # Set the timezone to 'Asia/Kolkata' (+05:30)
                 date = pytz.timezone('Asia/Kolkata').localize(date)
-
                 # Format the datetime
                 formatted_date = date.isoformat()
                 status = row.find_elements(
