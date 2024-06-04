@@ -34,7 +34,7 @@ def get_user_data(userinfo):
         }
     }
     """
-    username = userinfo['leetcode_id']
+    username = userinfo.get('leetcode_id', '')
     variables = {"username": username}
     data = make_graphql_request(query, variables)
 

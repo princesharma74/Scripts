@@ -30,7 +30,7 @@ if response.status_code == 200:
     # Parse the JSON response
     data = response.json()
     # Extract the submission calendar
-    submission_calendar_str = data['data']['matchedUser']['userCalendar']['submissionCalendar']
+    submission_calendar_str = data.get('data', {}).get('matchedUser', {}).get('userCalendar', {}).get('submissionCalendar', '{}')
     # Parse the submission calendar string to a dictionary
     submission_calendar = json.loads(submission_calendar_str)
     # Convert the submission calendar to a list of (timestamp, submission count) tuples

@@ -77,9 +77,9 @@ def push_to_api(endpoint, data, method='POST'):
 
 def run_tasks(users):
     for user in users:
-        print(f"Running tasks for [{user['first_name']}] @{user['username']}...")
-        username = user['username']
-        email = user['email']
+        print(f"Running tasks for [{user.get('first_name')}] @{user.get('username')}...")
+        username = user.get('username')
+        email = user.get('email')
         user_data = {}
         submissions = []
         contest_data = []

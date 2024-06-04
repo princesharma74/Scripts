@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 
 def get_user_data(userinfo):
-    username = userinfo['codeforces_id']
+    username = userinfo.get('codeforces_id')
     response = requests.get(
         f'https://codeforces.com/contests/with/{username}', allow_redirects=False)
 
@@ -13,21 +13,21 @@ def get_user_data(userinfo):
         print(f"codeforces userdata: user {username} not found")
     try:
         response = requests.post(
-            'https://codeforces.com/api/user.rating?handle=' + userinfo['codeforces_id'])
+            'https://codeforces.com/api/user.rating?handle=' + username)
         response.raise_for_status()
         data = response.json()
         if data and "result" in data:
             if data["result"]:
-                last_item = data["result"][-1]
-                rating = last_item["newRating"]
+                last_item = data.get('result')[-1]
+                rating = last_item.get("newRating")
                 userinfo['rating'] = rating
-                total_contests_participated = len(data["result"])
+                total_contests_participated = len(data.get("result"))
                 userinfo['number_of_contests'] = total_contests_participated
         else:
             print("No data available.")
 
         userinfo['number_of_questions'] = get_total_problems_solved(
-            userinfo['codeforces_id'])
+            username)
     except requests.exceptions.RequestException as e:
         print("Error fetching data:", e)
     except KeyError as ke:
@@ -73,14 +73,14 @@ def get_user_submissions(handle, count=100):
                 formatted_date = date.isoformat()
                 # if creation_time > recent_time and submission['verdict'] == 'OK':
                 if submission['verdict'] == 'OK':
-                    problem_name = submission['problem']['name']
-                    problem_url = f"https://codeforces.com/problemset/problem/{submission['problem']['contestId']}/{submission['problem']['index']}"
-                    submission_url = f"https://codeforces.com/contest/{submission['contestId']}/submission/{submission['id']}"
+                    problem_name = submission.get('problem').get('name')
+                    problem_url = f"https://codeforces.com/problemset/problem/{submission.get('problem').get('contestId')}/{submission.get('problem').get('index')}"
+                    submission_url = f"https://codeforces.com/contest/{submission.get('contestId')}/submission/{submission.get('id')}"
                     codeforces_submissions.append({
                         'platform': 'codeforces',
                         'problem_title': problem_name,
                         'problem_link': problem_url,
-                        'submission_id': int(submission['id']),
+                        'submission_id': int(submission.get('id')),
                         'submission_url': submission_url,
                         'submitted_at': formatted_date
                     })

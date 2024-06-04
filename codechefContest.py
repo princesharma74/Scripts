@@ -13,7 +13,7 @@ def codechef_contestHistory(driver, username):
 
     # Check if the request was redirected
     if response.status_code != 200:  # 302 status code indicates redirection
-        redirected_url = response.headers['Location']
+        redirected_url = response.headers.get('Location')
         if redirected_url == 'https://www.codechef.com/':
             print(f"No ContestHistory found for {username}.")
             return rating_change_data
@@ -67,20 +67,20 @@ def codechef_contestHistory(driver, username):
                 try:
                     data_json = json.loads(json_str)
                     prevRating = 1000
-                    for c in data_json['date_versus_rating']['all']:
+                    for c in data_json.get('date_versus_rating', {}).get('all', []):
                         contest_info = {}
-                        rating_change = str(int(c['rating']) - prevRating)
-                        prevRating = int(c['rating'])
-                        contest_name = str(c['name'])
+                        rating_change = str(int(c.get('rating', 0)) - prevRating)
+                        prevRating = int(c.get('rating', 0))
+                        contest_name = str(c.get('name'))
                         time = datetime.strptime(
                             c['end_date'], "%Y-%m-%d %H:%M:%S")
                         time = time.strftime("%Y-%m-%dT%H:%M:%S+05:30")
-                        global_rank = c['rank']
+                        global_rank = c.get('rank')
                         if 'Starters' not in contest_name:
                             continue
                         contest_info['user'] = username
                         contest_info['rating_change'] = int(rating_change)
-                        contest_info['final_rating'] = int(c['rating'])
+                        contest_info['final_rating'] = int(c.get('rating'))
                         contest_info['number_of_problems_solved'] = int(contest_problems_map.get(
                             contest_name, 0))
                         contest_info['time_taken'] = None

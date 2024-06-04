@@ -8,18 +8,18 @@ def getCodeforcesContests():
     codeforcesContests = []
     if response.status_code == 200:
         jsonResponse = json.loads(response.text)
-        contests = jsonResponse["result"]
+        contests = jsonResponse.get("result")
         for contest in contests:
             if contest["phase"] == "BEFORE":
                 codeforcesContest = {}
                 codeforcesContest["platform"] = "codeforces"
-                codeforcesContest["title"] = contest["name"]
-                codeforcesContest["url"] = "https://codeforces.com/contests/" + str(contest["id"])
+                codeforcesContest["title"] = contest.get("name")
+                codeforcesContest["url"] = "https://codeforces.com/contests/" + str(contest.get("id"))
                 # Convert start time to UTC and format as ISO 8601
-                start_time = datetime.fromtimestamp(contest["startTimeSeconds"], tz=timezone.utc)
+                start_time = datetime.fromtimestamp(contest.get("startTimeSeconds"), tz=timezone.utc)
                 start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
                 codeforcesContest["start_time"] = start_time_iso
-                codeforcesContest["duration"] = "PT" + str(contest["durationSeconds"] // 3600).zfill(2) + "H" + str((contest["durationSeconds"] % 3600) // 60).zfill(2) + "M"
+                codeforcesContest["duration"] = "PT" + str(contest.get("durationSeconds") // 3600).zfill(2) + "H" + str((contest.get("durationSeconds") % 3600) // 60).zfill(2) + "M"
                 
                 codeforcesContests.append(codeforcesContest)
     return codeforcesContests

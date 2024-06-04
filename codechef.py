@@ -15,7 +15,7 @@ import re
 
 
 def get_user_data(driver, userinfo):
-    username = userinfo['codechef_id']
+    username = userinfo.get('codechef_id', None)
     url = f"https://www.codechef.com/users/{username}"
 
     response = requests.get(f'https://www.codechef.com/users/{username}')
@@ -91,7 +91,7 @@ def get_user_submissions(driver, username):
 
     # Check if the request was redirected
     if response.status_code != 200:  # 302 status code indicates redirection
-        redirected_url = response.headers['Location']
+        redirected_url = response.headers.get('Location')
         if redirected_url == 'https://www.codechef.com/':
             print(f"The username '{username}' does not exist on CodeChef.")
             return []

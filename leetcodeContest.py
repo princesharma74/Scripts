@@ -34,7 +34,8 @@ def leetcode_contestHistory(username):
     if response.status_code == 200:
         data = response.json()
 
-        user_contest_ranking_history = data['data']['userContestRankingHistory']
+        user_contest_ranking_history = data.get('data', {}).get(
+            'userContestRankingHistory', None)
 
         if user_contest_ranking_history is None:
             print("No contest history found for the user")
@@ -47,15 +48,15 @@ def leetcode_contestHistory(username):
                 contestinfo['user'] = username
                 contestinfo['rating_change'] = int(
                     (history['rating'])-prevRating)
-                prevRating = int(history['rating'])
-                contestinfo['final_rating'] = int(history['rating'])
-                contestinfo['number_of_problems_solved'] = history['problemsSolved']
-                contestinfo['rank'] = history['ranking']
+                prevRating = int(history.get('rating', None))
+                contestinfo['final_rating'] = int(history.get('rating', None))  
+                contestinfo['number_of_problems_solved'] = history.get('problemsSolved', None)
+                contestinfo['rank'] = history.get('ranking', None)
                 contestinfo['contest'] = {
-                    'title': history['contest']['title'],
-                    'start_time': datetime.utcfromtimestamp(history['contest']['startTime']).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    'title': history.get('contest', {}).get('title', ''),
+                    'start_time': datetime.utcfromtimestamp(history.get('contest', {}).get('startTime', 0)).strftime('%Y-%m-%dT%H:%M:%SZ'),
                     'platform': 'leetcode',
-                    'url': f"https://leetcode.com/contest/{(history['contest']['title']).replace(' ', '-').lower()}",
+                    'url': f"https://leetcode.com/contest/{(history.get('contest', {}).get('title', '')).replace(' ', '-').lower()}",
                     'duration': '',
                     'total_questions': 4
                 }
