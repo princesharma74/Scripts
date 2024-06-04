@@ -57,23 +57,33 @@ def get_contest_history(username, platform):
     elif platform == 'leetcode':
         return leetcodeContest.leetcode_contestHistory(username)
 
-
-def push_to_api(endpoint, data, method='POST'):
+def push_to_api(endpoint, data, chunk_size=5, method='POST'):
     bearer_token = os.getenv('BEARER_TOKEN')
     api_url = api_endpoint + endpoint
     headers = {
         'Authorization': f'Bearer {bearer_token}',
         'Content-Type': 'application/json'
     }
-    try:
-        if method.upper() == 'POST':
-            response = requests.post(api_url, json=data, headers=headers)
-        elif method.upper() == 'PATCH':
-            response = requests.patch(api_url, json=data, headers=headers)
-        response.raise_for_status()
-        print("Data pushed successfully.")
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to push data. Error: {e}")
+
+    # If the data is an array, chunk it into smaller pieces
+    if isinstance(data, list):
+        data_chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+    else:
+        data_chunks = [data]
+
+    # Push each chunk of data to the API
+    for i, chunk in enumerate(data_chunks):
+        chunk_size = len(chunk)
+        print(f"Processing chunk {i+1}/{len(data_chunks)} of size {chunk_size}...")
+        try:
+            if method.upper() == 'POST':
+                response = requests.post(api_url, json=chunk, headers=headers)
+            elif method.upper() == 'PATCH':
+                response = requests.patch(api_url, json=chunk, headers=headers)
+            response.raise_for_status()
+            print("Chunk pushed successfully.")
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to push chunk. Error: {e}")
 
 def run_tasks(users):
     for user in users:
@@ -92,13 +102,13 @@ def run_tasks(users):
                 submissions.extend(user_submissions(platform_id, platform))
                 contest_data.extend(get_contest_history(platform_id, platform))
         # print(json.dumps(contest_data, indent=4))
-        push_to_api(f'/users/{email}/update', user_data, method='PATCH')
+        push_to_api(f'/users/{email}/update', user_data, method='PATCH') # no pagination required
         # print(contest_data)
-        push_to_api(f'/users/{email}/ratingchange/updateAll', contest_data, method='PATCH')
+        push_to_api(f'/users/{email}/ratingchange/updateAll', contest_data, method='PATCH') # pagination required
         # print(user_data)
-        print(f"Data for {username} fetched successfully.")
-        push_to_api(f'/users/{email}/submissions/update', submissions, method='PATCH')
-        print(f"Submissions for {username} fetched successfully.")
+        print(f"Rating changes for {username} pushed successfully.")
+        push_to_api(f'/users/{email}/submissions/update', submissions, method='PATCH') # pagination required
+        print(f"Submissions for {username} pushed successfully.")
 
 
 
