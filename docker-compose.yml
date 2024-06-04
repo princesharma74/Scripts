@@ -5,6 +5,7 @@ services:
     image: selenium/standalone-chrome:latest
     ports:
       - "4444:4444"
+    restart: always
 
   my_app:
     build: .
@@ -15,3 +16,4 @@ services:
     volumes:
       - .:/app
     command: python3 -u main.py >> /home/ubuntu/scripts/output.log 2>&1
+    restart: always
