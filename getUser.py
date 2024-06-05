@@ -15,7 +15,7 @@ def get_users():
     
     users = []
     page = 1
-    size = 10  # Adjust as needed or set dynamically
+    size = 1  # Adjust as needed or set dynamically
 
     while True:
         try:
