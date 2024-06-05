@@ -101,6 +101,7 @@ def run_tasks(user):
             contest_data.extend(get_contest_history(platform_id, platform))
     # print(json.dumps(contest_data, indent=4))
     user_data['lastUpdatedAt'] = datetime.now().isoformat()[:-3] + 'Z'
+    user_data['isAdmin'] = True
     push_to_api(f'/users/{email}/update', user_data, method='PATCH') # no pagination required
     # print(contest_data)
     push_to_api(f'/users/{email}/ratingchange/updateAll', contest_data, method='PATCH') # pagination required
