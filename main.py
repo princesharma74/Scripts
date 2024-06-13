@@ -20,6 +20,7 @@ driver = driversetup()
 
 platforms = ['codeforces', 'codechef', 'leetcode']
 
+# deploy
 def user_submissions(username, platform):
     print(f"Getting submissions for {platform}...")
     if platform == 'codeforces':
