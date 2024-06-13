@@ -33,7 +33,7 @@ def codeforces_contestHistory(username):
                 cols = row.find_all('td')
                 # Extract contest details
                 contest_info = {}
-                contest_info['user'] = username
+                contest_info['platform_user_id'] = username
                 contest_info['rating_change'] = int(cols[5].text.strip())
                 contest_info['final_rating'] = int(cols[6].text.strip())
                 contest_info['number_of_problems_solved'] = int(

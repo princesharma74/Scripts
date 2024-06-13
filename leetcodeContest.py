@@ -45,7 +45,7 @@ def leetcode_contestHistory(username):
         for history in user_contest_ranking_history:
             if history['attended']:
                 contestinfo = {}
-                contestinfo['user'] = username
+                contestinfo['platform_user_id'] = username
                 contestinfo['rating_change'] = int(
                     (history['rating'])-prevRating)
                 prevRating = int(history.get('rating', None))

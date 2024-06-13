@@ -78,7 +78,7 @@ def codechef_contestHistory(driver, username):
                         global_rank = c.get('rank')
                         if 'Starters' not in contest_name:
                             continue
-                        contest_info['user'] = username
+                        contest_info['platform_user_id'] = username
                         contest_info['rating_change'] = int(rating_change)
                         contest_info['final_rating'] = int(c.get('rating'))
                         contest_info['number_of_problems_solved'] = int(contest_problems_map.get(
