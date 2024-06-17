@@ -3,6 +3,7 @@ import requests
 from selenium_driver import driversetup
 import json
 from datetime import datetime
+import re
 
 
 def codechef_contestHistory(driver, username):
@@ -85,7 +86,7 @@ def codechef_contestHistory(driver, username):
                             contest_name, 0))
                         contest_info['time_taken'] = None
                         contest_info['rank'] = int(global_rank)
-                        word = contest_name.split()
+                        word = re.findall(r'[A-Za-z]+|\d+', contest_name)
                         starters_index = word.index("Starters")
                         contestNo = word[starters_index + 1]
                         # print(contestNo, contest_name)

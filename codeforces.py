@@ -4,8 +4,11 @@ import pytz
 from bs4 import BeautifulSoup
 
 
-def get_user_data(userinfo):
-    username = userinfo.get('codeforces_id')
+def get_user_data(username):
+    userinfo = {
+    }
+    if username is None:
+        return userinfo
     response = requests.get(
         f'https://codeforces.com/contests/with/{username}', allow_redirects=False)
 
@@ -13,7 +16,7 @@ def get_user_data(userinfo):
         print(f"codeforces userdata: user {username} not found")
     try:
         response = requests.post(
-            'https://codeforces.com/api/user.rating?handle=' + username)
+            f'https://codeforces.com/api/user.rating?handle={username}')
         response.raise_for_status()
         data = response.json()
         if data and "result" in data:
@@ -36,6 +39,8 @@ def get_user_data(userinfo):
 
 
 def get_total_problems_solved(username):
+    if username is None:
+        return 0
     url = f"https://codeforces.com/profile/{username}"
     response = requests.get(url)
     response.raise_for_status()
@@ -51,7 +56,8 @@ def get_total_problems_solved(username):
 
 
 def get_user_submissions(handle, count=100):
-
+    if handle is None:
+        return []
     url = "https://codeforces.com/api/user.status?handle=" + \
         handle + "&from=1&count=" + str(count)
     response = requests.get(url)

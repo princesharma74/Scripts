@@ -16,7 +16,11 @@ def make_graphql_request(query, variables):
         return None
 
 
-def get_user_data(userinfo):
+def get_user_data(username):
+    if username is None:
+        return {}
+    userinfo = {
+    }
     query = """
     query UserContestRanking($username: String!) {
         userContestRanking(username: $username) {
@@ -34,7 +38,6 @@ def get_user_data(userinfo):
         }
     }
     """
-    username = userinfo.get('leetcode_id', '')
     variables = {"username": username}
     data = make_graphql_request(query, variables)
 
@@ -74,6 +77,8 @@ def get_user_data(userinfo):
 
 
 def get_user_submissions(username, limit=20):
+    if username is None:
+        return []
     query_submission = """
     query RecentAcSubmissions($username: String!, $limit: Int) {
         recentAcSubmissionList(username: $username, limit: $limit) {

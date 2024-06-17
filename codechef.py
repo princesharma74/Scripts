@@ -14,8 +14,9 @@ import requests
 import re
 
 
-def get_user_data(driver, userinfo):
-    username = userinfo.get('codechef_id', None)
+def get_user_data(driver, username):
+    userinfo = {
+    }
     url = f"https://www.codechef.com/users/{username}"
 
     response = requests.get(f'https://www.codechef.com/users/{username}')
@@ -160,7 +161,7 @@ def get_user_submissions(driver, username):
                 (By.XPATH, "//table[@class='dataTable']/tbody")))
             page_count += 1
     except Exception as e:
-        print("An error occurred:", str(e))
+        print("lesser pages than max were found")
 
     return codechef_submissions
 

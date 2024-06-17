@@ -17,8 +17,7 @@ def getCodeforcesContests():
                 codeforcesContest["url"] = "https://codeforces.com/contests/" + str(contest.get("id"))
                 # Convert start time to UTC and format as ISO 8601
                 start_time = datetime.fromtimestamp(contest.get("startTimeSeconds"), tz=timezone.utc)
-                start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-                codeforcesContest["start_time"] = start_time_iso
+                codeforcesContest["start_time"] = start_time
                 codeforcesContest["duration"] = "PT" + str(contest.get("durationSeconds") // 3600).zfill(2) + "H" + str((contest.get("durationSeconds") % 3600) // 60).zfill(2) + "M"
                 
                 codeforcesContests.append(codeforcesContest)
@@ -41,10 +40,6 @@ def getCodechefContests():
         contest_url = f"https://www.codechef.com/START{i + current_num}"
         # Calculate the start time (assuming 2:30 PM UTC)
         start_time = current_date.replace(hour=14, minute=30, second=0, microsecond=0)
-        # Add 2 hours to the start time for the duration
-        end_time = start_time + timedelta(hours=2)
-        # Format start time and duration as ISO 8601 strings
-        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
         duration_iso = "PT2H"  # Duration is 2 hours
         # Define the total number of questions
         total_questions = 8
@@ -53,7 +48,7 @@ def getCodechefContests():
             "title": contest_name,
             "url": contest_url,
             "platform": "codechef",
-            "start_time": start_time_iso,
+            "start_time": start_time,
             "duration": duration_iso,
             "total_questions": total_questions
         }
@@ -84,7 +79,6 @@ def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
         # Add 1.5 hours to the start time for the duration
         end_time = start_time + timedelta(hours=1, minutes=30)
         # Format start time and duration as ISO 8601 strings
-        start_time_iso = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
         duration_iso = "PT1H30M"  # Duration is 1.5 hours
         # Define the total number of questions
         total_questions = 4
@@ -93,7 +87,7 @@ def generate_leetcode_contests(contest_type, num_days, start_date, contest_num):
             "title": contest_name,
             "url": contest_url,
             "platform": "leetcode",
-            "start_time": start_time_iso,
+            "start_time": start_time,
             "duration": duration_iso,
             "total_questions": total_questions
         }

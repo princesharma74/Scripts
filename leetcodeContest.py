@@ -54,7 +54,7 @@ def leetcode_contestHistory(username):
                 contestinfo['rank'] = history.get('ranking', None)
                 contestinfo['contest'] = {
                     'title': history.get('contest', {}).get('title', ''),
-                    'start_time': datetime.utcfromtimestamp(history.get('contest', {}).get('startTime', 0)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    'start_time': datetime.utcfromtimestamp(history.get('contest', {}).get('startTime', 0)).strftime('%Y-%m-%d %H:%M:%S'),
                     'platform': 'leetcode',
                     'url': f"https://leetcode.com/contest/{(history.get('contest', {}).get('title', '')).replace(' ', '-').lower()}",
                     'duration': '',
